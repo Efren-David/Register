@@ -1,0 +1,101 @@
+// Call the dataTables jQuery plugin
+$(document).ready(function() {
+
+  
+  
+});
+
+var x = document.getElementById("demo");
+
+var longitude;
+var latitude;
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);   
+  } else {
+	 alert("Geolocation is not supported by this browser.");
+	 document.getElementById("demo").innerHTML = "Geolocation is not supported by this browser.";
+   
+  }
+}
+
+function showPosition(position) {
+	longitude =  position.coords.longitude;
+	latitude =  position.coords.latitude;
+	
+//	longitude = -98.9002286;
+//	latitude =  19.4364199;
+	
+	
+//	 alert("Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude);
+	console.log("Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude);
+	 
+	 mapboxgl.accessToken = 'pk.eyJ1IjoiYW5zZXIwMSIsImEiOiJjbGkxNWpxbWcwZnQzM2twY21zYmU1bWE4In0.CFQLH9GCZFULLJ-RBw6GMA';
+	 const map = new mapboxgl.Map({
+	 container: 'map', // container ID
+	 // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+	 style: 'mapbox://styles/mapbox/streets-v10', // style URL
+	 center: [longitude, latitude], // starting position [lng, lat]
+	 zoom: 11 // starting zoom
+	 });
+	 
+	 const marker1 = new mapboxgl.Marker()
+	 .setLngLat([longitude, latitude])
+	 .addTo(map);
+	
+	 
+	 cargarDireccion(longitude, latitude, 'pk.eyJ1IjoiYW5zZXIwMSIsImEiOiJjbGkxNWpxbWcwZnQzM2twY21zYmU1bWE4In0.CFQLH9GCZFULLJ-RBw6GMA');
+	 
+	 document.getElementById("strCoord").innerHTML = "Latitude: " + position.coords.latitude + 
+	  "<br>Longitude: " + position.coords.longitude;
+	 
+}
+
+
+async function cargarDireccion(long,lat ,token) {
+	const url = "https://api.mapbox.com/geocoding/v5/mapbox.places/" +long +","+lat + ".json?access_token="+token 
+	
+  const request = await fetch( url, {
+    method: 'GET',
+    headers: getHeaders()
+  });
+  const data = await request.json();
+  console.log(JSON.stringify(data));
+
+  
+  let listadoDirec = '';
+
+  for (let usuario of data.features) {
+  
+    let direc = '<div>'+usuario.place_name+'</div>';                       
+    listadoDirec += direc; 
+    
+  }
+
+  console.log(listadoDirec);
+  document.getElementById("strCoord").innerHTML = listadoDirec;
+
+}
+
+function getHeaders() {
+    return {
+     'Accept': 'application/json',
+     'Content-Type': 'application/json',
+     'Authorization': localStorage.token
+   };
+}
+
+async function eliminarUsuario(id) {
+
+  if (!confirm('¿Desea eliminar este usuario?')) {
+    return;
+  }
+
+ const request = await fetch('api/usuarios/' + id, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+
+  location.reload()
+}
